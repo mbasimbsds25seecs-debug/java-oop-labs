@@ -1,65 +1,99 @@
 import java.util.Scanner;
 
-class BankAccount {
-    protected String accountNumber;
-    protected String holderName;
-    protected double balance;
+class Student {
+    protected String name;
+    protected int rollNumber;
+    protected String department;
 
-    public BankAccount(String accountNumber, String holderName, double balance) {
-        this.accountNumber = accountNumber;
-        this.holderName = holderName;
-        this.balance = balance;
+    public Student(String name, int rollNumber, String department) {
+        this.name = name;
+        this.rollNumber = rollNumber;
+        this.department = department;
     }
 
-    public void deposit(double amount) {
-        balance += amount;
-        System.out.printf("%s deposited: %.2f | New Balance: %.2f%n", holderName, amount, balance);
+    public double calculateGrade() {
+        return 0.0;
     }
 
-    public void withdraw(double amount) {
-        if (amount <= balance) {
-            balance -= amount;
-            System.out.printf("%s withdrew: %.2f | New Balance: %.2f%n", holderName, amount, balance);
-        } else {
-            System.out.println("Insufficient funds for " + holderName);
-        }
+    public String getGradeCategory(double marks) {
+        if (marks >= 85) return "Excellent";
+        else if (marks >= 60) return "Good";
+        else return "Needs Improvement";
     }
 
-    public double getBalance() { return balance; }
-    public String getHolderName() { return holderName; }
+    public String getName() { return name; }
+    public int getRollNumber() { return rollNumber; }
+    public String getDepartment() { return department; }
 }
 
-class SavingsAccount extends BankAccount {
-    private double interestRate;
 
-    public SavingsAccount(String accountNumber, String holderName, double balance, double interestRate) {
-        super(accountNumber, holderName, balance);
-        this.interestRate = interestRate;
-    }
+class ExamStudent extends Student {
+    private double examMarks;
 
-    public void calculateInterest() {
-        double interest = balance * interestRate;
-        balance += interest;
-        System.out.printf("%s's interest added: %.2f | New Balance: %.2f%n", holderName, interest, balance);
-    }
-}
-
-class CurrentAccount extends BankAccount {
-    private double overdraftLimit;
-
-    public CurrentAccount(String accountNumber, String holderName, double balance, double overdraftLimit) {
-        super(accountNumber, holderName, balance);
-        this.overdraftLimit = overdraftLimit;
+    public ExamStudent(String name, int rollNumber, String department, double examMarks) {
+        super(name, rollNumber, department);
+        this.examMarks = examMarks;
     }
 
     @Override
-    public void withdraw(double amount) {
-        if (amount <= balance + overdraftLimit) {
-            balance -= amount;
-            System.out.printf("%s withdrew: %.2f | New Balance: %.2f%n", holderName, amount, balance);
-        } else {
-            System.out.println("Overdraft limit exceeded for " + holderName);
-        }
+    public double calculateGrade() {
+        return examMarks; 
+    }
+
+    @Override
+    public String toString() {
+        return "[EXAM]        " + name + " | Roll: " + rollNumber + " | Marks: " + String.format("%.2f", calculateGrade());
+    }
+}
+
+
+class ProjectStudent extends Student {
+    private double quizMarks;
+    private double projectMarks;
+    private double presentationMarks;
+
+    public ProjectStudent(String name, int rollNumber, String department,
+                          double quizMarks, double projectMarks, double presentationMarks) {
+        super(name, rollNumber, department);
+        this.quizMarks = quizMarks;
+        this.projectMarks = projectMarks;
+        this.presentationMarks = presentationMarks;
+    }
+
+    @Override
+    public double calculateGrade() {
+    
+        return (quizMarks * 0.20) + (projectMarks * 0.50) + (presentationMarks * 0.30);
+    }
+
+    @Override
+    public String toString() {
+        return "[PROJECT]     " + name + " | Roll: " + rollNumber + " | Marks: " + String.format("%.2f", calculateGrade());
+    }
+}
+
+
+class AttendanceStudent extends Student {
+    private double baseMarks;
+    private double attendancePercentage;
+
+    public AttendanceStudent(String name, int rollNumber, String department,
+                             double baseMarks, double attendancePercentage) {
+        super(name, rollNumber, department);
+        this.baseMarks = baseMarks;
+        this.attendancePercentage = attendancePercentage;
+    }
+
+    @Override
+    public double calculateGrade() {
+        // attendance above 90% gives 5 bonus marks, capped at 100
+        double bonus = (attendancePercentage >= 90) ? 5 : 0;
+        return Math.min(100, baseMarks + bonus);
+    }
+
+    @Override
+    public String toString() {
+        return "[ATTENDANCE]  " + name + " | Roll: " + rollNumber + " | Marks: " + String.format("%.2f", calculateGrade());
     }
 }
 
@@ -68,94 +102,96 @@ public class lab8 {
 
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("       TASK 1: BANKING SYSTEM       \n");
+        System.out.println("========== TASK 3: UNIVERSITY GRADING ECOSYSTEM ==========\n");
 
-        // --- Savings Accounts ---
-        System.out.print("How many Savings Accounts? ");
-        int savCount = sc.nextInt();
+        System.out.print("How many students do you want to enter? ");
+        int n = sc.nextInt();
         sc.nextLine();
 
-        SavingsAccount[] savAccounts = new SavingsAccount[savCount];
+        Student[] students = new Student[n];
 
-        for (int i = 0; i < savCount; i++) {
-            System.out.println("\n--- Savings Account " + (i + 1) + " ---");
-            System.out.print("Account Number: ");
-            String accNum = sc.nextLine();
-            System.out.print("Holder Name: ");
+        for (int i = 0; i < n; i++) {
+            System.out.println("\n--- Student " + (i + 1) + " ---");
+            System.out.print("Enter name: ");
             String name = sc.nextLine();
-            System.out.print("Initial Balance: ");
-            double balance = sc.nextDouble();
-            System.out.print("Interest Rate (e.g. 0.05 for 5%): ");
-            double rate = sc.nextDouble();
+
+            System.out.print("Enter roll number: ");
+            int roll = sc.nextInt();
             sc.nextLine();
-            savAccounts[i] = new SavingsAccount(accNum, name, balance, rate);
-        }
 
-        // --- Current Accounts ---
-        System.out.print("\nHow many Current Accounts? ");
-        int curCount = sc.nextInt();
-        sc.nextLine();
+            System.out.print("Enter department: ");
+            String dept = sc.nextLine();
 
-        CurrentAccount[] curAccounts = new CurrentAccount[curCount];
-
-        for (int i = 0; i < curCount; i++) {
-            System.out.println("\n--- Current Account " + (i + 1) + " ---");
-            System.out.print("Account Number: ");
-            String accNum = sc.nextLine();
-            System.out.print("Holder Name: ");
-            String name = sc.nextLine();
-            System.out.print("Initial Balance: ");
-            double balance = sc.nextDouble();
-            System.out.print("Overdraft Limit: ");
-            double overdraft = sc.nextDouble();
+            System.out.println("Evaluation type:");
+            System.out.println("  1 = Exam only");
+            System.out.println("  2 = Quiz + Project + Presentation");
+            System.out.println("  3 = Base marks + Attendance");
+            System.out.print("Choose (1/2/3): ");
+            int type = sc.nextInt();
             sc.nextLine();
-            curAccounts[i] = new CurrentAccount(accNum, name, balance, overdraft);
-        }
 
-        // Transactions
-        System.out.println("\n========== TRANSACTIONS ==========");
+            if (type == 1) {
+                System.out.print("Enter exam marks (out of 100): ");
+                double exam = sc.nextDouble();
+                sc.nextLine();
+                students[i] = new ExamStudent(name, roll, dept, exam);
 
-        // Deposits for savings accounts
-        for (int i = 0; i < savCount; i++) {
-            System.out.print("\nDeposit amount for " + savAccounts[i].getHolderName() + " (0 to skip): ");
-            double amt = sc.nextDouble();
-            sc.nextLine();
-            if (amt > 0) savAccounts[i].deposit(amt);
-        }
+            } else if (type == 2) {
+                System.out.print("Enter quiz marks (out of 100): ");
+                double quiz = sc.nextDouble();
+                System.out.print("Enter project marks (out of 100): ");
+                double project = sc.nextDouble();
+                System.out.print("Enter presentation marks (out of 100): ");
+                double presentation = sc.nextDouble();
+                sc.nextLine();
+                students[i] = new ProjectStudent(name, roll, dept, quiz, project, presentation);
 
-        // Withdrawals for current accounts
-        for (int i = 0; i < curCount; i++) {
-            System.out.print("\nWithdraw amount for " + curAccounts[i].getHolderName() + " (0 to skip): ");
-            double amt = sc.nextDouble();
-            sc.nextLine();
-            if (amt > 0) curAccounts[i].withdraw(amt);
-        }
-
-        // Apply interest to all savings accounts
-        System.out.println("\n========== INTEREST APPLIED ==========");
-        for (int i = 0; i < savCount; i++) {
-            savAccounts[i].calculateInterest();
-        }
-
-        // Summary using base class array 
-        int total = savCount + curCount;
-        BankAccount[] allAccounts = new BankAccount[total];
-        for (int i = 0; i < savCount; i++) allAccounts[i] = savAccounts[i];
-        for (int i = 0; i < curCount; i++) allAccounts[savCount + i] = curAccounts[i];
-
-        double totalBalance = 0;
-        BankAccount highest = allAccounts[0];
-
-        for (BankAccount acc : allAccounts) {
-            totalBalance += acc.getBalance();
-            if (acc.getBalance() > highest.getBalance()) {
-                highest = acc;
+            } else {
+                System.out.print("Enter base marks (out of 100): ");
+                double base = sc.nextDouble();
+                System.out.print("Enter attendance percentage (e.g. 95): ");
+                double attendance = sc.nextDouble();
+                sc.nextLine();
+                students[i] = new AttendanceStudent(name, roll, dept, base, attendance);
             }
         }
 
-        System.out.println("\n========== SUMMARY ==========");
-        System.out.printf("Highest Balance: %s -> %.2f%n", highest.getHolderName(), highest.getBalance());
-        System.out.printf("Total Bank Balance: %.2f%n", totalBalance);
+        // Process all students together
+        System.out.println("\n       GRADE REPORT       ");
+        Student topStudent = students[0];
+
+        for (Student s : students) {
+            double grade = s.calculateGrade();
+            System.out.println(s + " | Category: " + s.getGradeCategory(grade));
+            if (grade > topStudent.calculateGrade()) {
+                topStudent = s;
+            }
+        }
+
+        System.out.println("\nTop Performing Student: " + topStudent.getName()
+                + " (Roll: " + topStudent.getRollNumber() + ")"
+                + " with " + String.format("%.2f", topStudent.calculateGrade()) + " marks");
+
+        // Evaluate a single student independently
+        System.out.println("\n       SINGLE STUDENT EVALUATION       ");
+        System.out.println("\nEnter details for one more student:");
+        System.out.print("Enter name: ");
+        String sName = sc.nextLine();
+
+        System.out.print("Enter roll number: ");
+        int sRoll = sc.nextInt();
+        sc.nextLine();
+
+        System.out.print("Enter department: ");
+        String sDept = sc.nextLine();
+
+        System.out.print("Enter exam marks (out of 100): ");
+        double sMarks = sc.nextDouble();
+        sc.nextLine();
+
+        Student single = new ExamStudent(sName, sRoll, sDept, sMarks);
+        double sGrade = single.calculateGrade();
+        System.out.println("\n" + single + " | Category: " + single.getGradeCategory(sGrade));
 
         sc.close();
     }
