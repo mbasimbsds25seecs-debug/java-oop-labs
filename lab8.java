@@ -1,67 +1,65 @@
 import java.util.Scanner;
 
-class Patient {
-    protected String name;
-    protected int age;
-    protected String condition;
+class BankAccount {
+    protected String accountNumber;
+    protected String holderName;
+    protected double balance;
 
-    public Patient(String name, int age, String condition) {
-        this.name = name;
-        this.age = age;
-        this.condition = condition;
+    public BankAccount(String accountNumber, String holderName, double balance) {
+        this.accountNumber = accountNumber;
+        this.holderName = holderName;
+        this.balance = balance;
     }
 
-    public void evaluateHealth() {
-        System.out.println("Patient: " + name + "  Condition: " + condition);
+    public void deposit(double amount) {
+        balance += amount;
+        System.out.printf("%s deposited: %.2f | New Balance: %.2f%n", holderName, amount, balance);
     }
 
-    public boolean isCritical() {
-        return condition.equalsIgnoreCase("critical");
+    public void withdraw(double amount) {
+        if (amount <= balance) {
+            balance -= amount;
+            System.out.printf("%s withdrew: %.2f | New Balance: %.2f%n", holderName, amount, balance);
+        } else {
+            System.out.println("Insufficient funds for " + holderName);
+        }
     }
 
-    public String getName() { return name; }
-    public String getCondition() { return condition; }
+    public double getBalance() { return balance; }
+    public String getHolderName() { return holderName; }
 }
 
-class CriticalPatient extends Patient {
-    private int heartRate;
+class SavingsAccount extends BankAccount {
+    private double interestRate;
 
-    public CriticalPatient(String name, int age, int heartRate) {
-        super(name, age, "Critical");
-        this.heartRate = heartRate;
+    public SavingsAccount(String accountNumber, String holderName, double balance, double interestRate) {
+        super(accountNumber, holderName, balance);
+        this.interestRate = interestRate;
     }
 
-    @Override
-    public void evaluateHealth() {
-        System.out.println("[CRITICAL]  " + name + "  Heart Rate: " + heartRate + " bpm  Needs IMMEDIATE attention!");
-    }
-}
-
-class StablePatient extends Patient {
-    private String monitoringFrequency;
-
-    public StablePatient(String name, int age, String monitoringFrequency) {
-        super(name, age, "Stable");
-        this.monitoringFrequency = monitoringFrequency;
-    }
-
-    @Override
-    public void evaluateHealth() {
-        System.out.println("[STABLE]    " + name + "  Monitoring: every " + monitoringFrequency);
+    public void calculateInterest() {
+        double interest = balance * interestRate;
+        balance += interest;
+        System.out.printf("%s's interest added: %.2f | New Balance: %.2f%n", holderName, interest, balance);
     }
 }
 
-class ModeratePatient extends Patient {
-    private String vitalSigns;
+class CurrentAccount extends BankAccount {
+    private double overdraftLimit;
 
-    public ModeratePatient(String name, int age, String vitalSigns) {
-        super(name, age, "Moderate");
-        this.vitalSigns = vitalSigns;
+    public CurrentAccount(String accountNumber, String holderName, double balance, double overdraftLimit) {
+        super(accountNumber, holderName, balance);
+        this.overdraftLimit = overdraftLimit;
     }
 
     @Override
-    public void evaluateHealth() {
-        System.out.println("[MODERATE]  " + name + "  Vitals: " + vitalSigns + "  Under observation.");
+    public void withdraw(double amount) {
+        if (amount <= balance + overdraftLimit) {
+            balance -= amount;
+            System.out.printf("%s withdrew: %.2f | New Balance: %.2f%n", holderName, amount, balance);
+        } else {
+            System.out.println("Overdraft limit exceeded for " + holderName);
+        }
     }
 }
 
@@ -70,70 +68,94 @@ public class lab8 {
 
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("========== TASK 2: HEALTHCARE MONITORING ==========\n");
+        System.out.println("       TASK 1: BANKING SYSTEM       \n");
 
-        System.out.print("How many patients do you want to enter? ");
-        int n = sc.nextInt();
-        sc.nextLine(); // consume leftover newline
+        // --- Savings Accounts ---
+        System.out.print("How many Savings Accounts? ");
+        int savCount = sc.nextInt();
+        sc.nextLine();
 
-        Patient[] patients = new Patient[n];
+        SavingsAccount[] savAccounts = new SavingsAccount[savCount];
 
-        for (int i = 0; i < n; i++) {
-            System.out.println("\n--- Patient " + (i + 1) + " ---");
-            System.out.print("Enter name: ");
+        for (int i = 0; i < savCount; i++) {
+            System.out.println("\n--- Savings Account " + (i + 1) + " ---");
+            System.out.print("Account Number: ");
+            String accNum = sc.nextLine();
+            System.out.print("Holder Name: ");
             String name = sc.nextLine();
-
-            System.out.print("Enter age: ");
-            int age = sc.nextInt();
+            System.out.print("Initial Balance: ");
+            double balance = sc.nextDouble();
+            System.out.print("Interest Rate (e.g. 0.05 for 5%): ");
+            double rate = sc.nextDouble();
             sc.nextLine();
+            savAccounts[i] = new SavingsAccount(accNum, name, balance, rate);
+        }
 
-            System.out.println("Enter type (1 = Critical, 2 = Stable, 3 = Moderate): ");
-            int type = sc.nextInt();
+        // --- Current Accounts ---
+        System.out.print("\nHow many Current Accounts? ");
+        int curCount = sc.nextInt();
+        sc.nextLine();
+
+        CurrentAccount[] curAccounts = new CurrentAccount[curCount];
+
+        for (int i = 0; i < curCount; i++) {
+            System.out.println("\n--- Current Account " + (i + 1) + " ---");
+            System.out.print("Account Number: ");
+            String accNum = sc.nextLine();
+            System.out.print("Holder Name: ");
+            String name = sc.nextLine();
+            System.out.print("Initial Balance: ");
+            double balance = sc.nextDouble();
+            System.out.print("Overdraft Limit: ");
+            double overdraft = sc.nextDouble();
             sc.nextLine();
+            curAccounts[i] = new CurrentAccount(accNum, name, balance, overdraft);
+        }
 
-            if (type == 1) {
-                System.out.print("Enter heart rate (bpm): ");
-                int heartRate = sc.nextInt();
-                sc.nextLine();
-                patients[i] = new CriticalPatient(name, age, heartRate);
+        // Transactions
+        System.out.println("\n========== TRANSACTIONS ==========");
 
-            } else if (type == 2) {
-                System.out.print("Enter monitoring frequency (e.g. 6 hours): ");
-                String freq = sc.nextLine();
-                patients[i] = new StablePatient(name, age, freq);
+        // Deposits for savings accounts
+        for (int i = 0; i < savCount; i++) {
+            System.out.print("\nDeposit amount for " + savAccounts[i].getHolderName() + " (0 to skip): ");
+            double amt = sc.nextDouble();
+            sc.nextLine();
+            if (amt > 0) savAccounts[i].deposit(amt);
+        }
 
-            } else {
-                System.out.print("Enter vital signs (e.g. BP 140/90): ");
-                String vitals = sc.nextLine();
-                patients[i] = new ModeratePatient(name, age, vitals);
+        // Withdrawals for current accounts
+        for (int i = 0; i < curCount; i++) {
+            System.out.print("\nWithdraw amount for " + curAccounts[i].getHolderName() + " (0 to skip): ");
+            double amt = sc.nextDouble();
+            sc.nextLine();
+            if (amt > 0) curAccounts[i].withdraw(amt);
+        }
+
+        // Apply interest to all savings accounts
+        System.out.println("\n========== INTEREST APPLIED ==========");
+        for (int i = 0; i < savCount; i++) {
+            savAccounts[i].calculateInterest();
+        }
+
+        // Summary using base class array 
+        int total = savCount + curCount;
+        BankAccount[] allAccounts = new BankAccount[total];
+        for (int i = 0; i < savCount; i++) allAccounts[i] = savAccounts[i];
+        for (int i = 0; i < curCount; i++) allAccounts[savCount + i] = curAccounts[i];
+
+        double totalBalance = 0;
+        BankAccount highest = allAccounts[0];
+
+        for (BankAccount acc : allAccounts) {
+            totalBalance += acc.getBalance();
+            if (acc.getBalance() > highest.getBalance()) {
+                highest = acc;
             }
         }
 
-        // Process all patients
-        System.out.println("\n--- Health Status Summary ---");
-        int criticalCount = 0;
-        for (Patient p : patients) {
-            p.evaluateHealth();
-            if (p.isCritical()) criticalCount++;
-        }
-
-        System.out.println("\nTotal Critical Cases: " + criticalCount);
-
-        // Single patient evaluation
-        System.out.println("\n--- Single Patient Evaluation ---");
-        System.out.println("\nEnter details for one more patient:");
-        System.out.print("Enter name: ");
-        String sName = sc.nextLine();
-
-        System.out.print("Enter age: ");
-        int sAge = sc.nextInt();
-        sc.nextLine();
-
-        System.out.print("Enter vital signs: ");
-        String sVitals = sc.nextLine();
-
-        Patient single = new ModeratePatient(sName, sAge, sVitals);
-        single.evaluateHealth();
+        System.out.println("\n========== SUMMARY ==========");
+        System.out.printf("Highest Balance: %s -> %.2f%n", highest.getHolderName(), highest.getBalance());
+        System.out.printf("Total Bank Balance: %.2f%n", totalBalance);
 
         sc.close();
     }
